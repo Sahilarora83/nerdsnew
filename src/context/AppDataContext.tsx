@@ -260,22 +260,27 @@ export const AppDataProvider: React.FC<AppDataProviderProps> = ({ children }) =>
     const showGlobalLoading = force || !lastFetchTime.current['hackathons'];
     if (showGlobalLoading) setLoading(true);
 
-    const startTime = Date.now();
+    try {
+      const startTime = Date.now();
 
-    const fetchPromises = promises.map(mod =>
-      mod.fn().then(() => markFetched(mod.key))
-    );
+      const fetchPromises = promises.map(mod =>
+        mod.fn().then(() => markFetched(mod.key))
+      );
 
-    await Promise.all(fetchPromises);
+      await Promise.all(fetchPromises);
 
-    // Ensure loading lasts at least 0.5 seconds ONLY for initial/forced loads
-    if (showGlobalLoading) {
-      const elapsedTime = Date.now() - startTime;
-      const minLoadingTime = 500;
-      if (elapsedTime < minLoadingTime) {
-        await new Promise(resolve => setTimeout(resolve, minLoadingTime - elapsedTime));
+      // Ensure loading lasts at least 0.5 seconds ONLY for initial/forced loads
+      if (showGlobalLoading) {
+        const elapsedTime = Date.now() - startTime;
+        const minLoadingTime = 500;
+        if (elapsedTime < minLoadingTime) {
+          await new Promise(resolve => setTimeout(resolve, minLoadingTime - elapsedTime));
+        }
       }
-      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    } finally {
+      if (showGlobalLoading) setLoading(false);
     }
   };
 
